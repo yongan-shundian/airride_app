@@ -56,13 +56,13 @@
             	<string>AirRide 需於背景持續追蹤騎乘位置並於超標時發出通知</string>
         	    <key>UIBackgroundModes</key>
             	<array>
-	            	<string>bluetooth-central</string>
-	            	<string>location</string>
+	            	    <string>bluetooth-central</string>
+	            	    <string>location</string>
             	</array>
         	    <key>NSAppTransportSecurity</key>
             	<dict>
-		            <key>NSAllowsArbitraryLoads</key>
-		            <true/>
+		                <key>NSAllowsArbitraryLoads</key>
+		                <true/>
 	            </dict>		
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

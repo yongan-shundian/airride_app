@@ -316,23 +316,44 @@ class _AirRideHomePageState extends State<AirRideHomePage> {
   }
 
   // ================= BLE 掃描與連線 =================
+  // ================= 防閃退安全版：BLE 掃描與連線 =================
   Future<void> _scanAndConnectBle() async {
-    await _requestPermissions();
-    if (_isScanning) return;
+    // 1. 檢查手機藍牙硬體是否有打開
+    try {
+      if (await FlutterBluePlus.adapterState.first != BluetoothAdapterState.on) {
+        _showSnack(isZh ? '⚠️ 請先在手機「設定」中開啟藍牙！' : '⚠️ Please enable Bluetooth on your phone!');
+        return;
+      }
+    } catch (e) {
+      // 忽略檢查錯誤，繼續往下
+    }
 
+    // 2. 請求權限保護
+    try {
+      await _requestPermissions();
+    } catch (e) {
+      debugPrint('權限請求例外: $e');
+    }
+
+    if (_isScanning) return;
     setState(() => _isScanning = true);
     bool foundTarget = false;
 
     try {
+      // 確保先關閉先前的掃描，避免重複掃描導致衝突
+      await FlutterBluePlus.stopScan();
+
       _scanSub?.cancel();
       _scanSub = FlutterBluePlus.scanResults.listen((results) async {
         for (final r in results) {
           final name = r.device.platformName.isNotEmpty
               ? r.device.platformName
               : r.advertisementData.advName;
+          
           final hasService = r.advertisementData.serviceUuids.any(
             (u) => u.toString().toLowerCase() == kServiceUuid.toLowerCase(),
           );
+
           if (name.contains(kBleDevicePrefix) || hasService) {
             if (!foundTarget) {
               foundTarget = true;
@@ -345,12 +366,18 @@ class _AirRideHomePageState extends State<AirRideHomePage> {
             break;
           }
         }
+      }, onError: (err) {
+        debugPrint('掃描監聽例外: $err');
       });
 
-      await FlutterBluePlus.startScan(timeout: const Duration(seconds: 6));
+      // 啟動安全掃描 (超時 6 秒自動停止)
+      await FlutterBluePlus.startScan(
+        timeout: const Duration(seconds: 6),
+        androidUsesFineLocation: false,
+      );
     } catch (e) {
       if (mounted) {
-        _showSnack(isZh ? '藍牙掃描失敗：$e' : 'BLE Scan failed: $e');
+        _showSnack(isZh ? '藍牙掃描提示：$e' : 'BLE Scan notice: $e');
       }
     } finally {
       if (mounted) setState(() => _isScanning = false);
