@@ -1303,7 +1303,7 @@ class _AirRideHomePageState extends State<AirRideHomePage> {
                           )
                         : ListView.separated(
                             itemCount: _savedReports.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
                             itemBuilder: (_, idx) {
                               final r = _savedReports[idx];
                               final avgCo = (r['avg_co_ppm'] ?? 0.0).toDouble();
