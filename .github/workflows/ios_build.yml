@@ -9,25 +9,17 @@ jobs:
   build_ios:
     runs-on: macos-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.41.0'
           channel: 'stable'
-          cache: true
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Setup CocoaPods Repo
-        run: |
-          cd ios
-          pod install --repo-update || true
-          cd ..
-
-      - name: Build iOS App (No Codesign)
+      - name: Build iOS (No Codesign)
         run: flutter build ios --release --no-codesign
 
       - name: Package IPA
@@ -36,7 +28,7 @@ jobs:
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r AirRide-iOS.ipa Payload
 
-      - name: Upload IPA Artifact
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: AirRide-iOS-IPA
