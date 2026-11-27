@@ -622,6 +622,26 @@ class _AirRideHomePageState extends State<AirRideHomePage> {
     await prefs.setString('pending_queue', jsonEncode(_pendingQueue));
   }
 
+ 
+    // 補上這一段：將資料傳給你的後端 (或是之後改接 MQTT)
+    _forwardTelemetry(record);
+  }
+
+  // 新增這個函式來上傳
+  Future<void> _forwardTelemetry(Map<String, dynamic> data) async {
+    try {
+      // 這裡目前先用 HTTP POST 傳給 main.py
+      // 等你註冊好 HiveMQ 後，我們改成 mqttClient.publish()
+      await http.post(
+        Uri.parse('http://192.168.0.132:8000/api/telemetry'), 
+        body: jsonEncode(data),
+        headers: {'Content-Type': 'application/json'}
+      );
+    } catch (e) {
+      debugPrint('尚未連網或伺服器未開');
+    }
+  }
+
   // ================= 熄火偵測與騎乘報告結算 =================
   void _startRideTimer() {
     _rideTicker = Timer.periodic(const Duration(seconds: 1), (_) {
